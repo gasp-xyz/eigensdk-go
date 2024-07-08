@@ -243,22 +243,6 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 		a.logger.Fatal("Aggregator failed to get operators state from avs registry", "err", err)
 	}
 
-	// var operators_added map[types.OperatorId]bool
-	// var operators_removed map[types.OperatorId]bool
-
-	// for k, _ := range operatorsAvsStateDict{
-	// 	_, ok := oldOperatorsAvsStateDict[k] 
-	// 	if !ok{
-	// 		operators_added[k] = true
-	// 	}
-	// }
-	// for k, _ := range oldOperatorsAvsStateDict{
-	// 	_, ok := operatorsAvsStateDict[k] 
-	// 	if !ok{
-	// 		operators_removed[k] = true
-	// 	}
-	// }
-
 	quorumsAvsStakeDict, err := a.avsRegistryService.GetQuorumsAvsStateAtBlock(context.Background(), quorumNumbers, taskCreatedBlock)
 	if err != nil {
 		a.logger.Fatal("Aggregator failed to get quorums state from avs registry", "err", err)
