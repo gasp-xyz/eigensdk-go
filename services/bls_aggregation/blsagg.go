@@ -269,6 +269,15 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 		case signedTaskResponseDigest := <-signedTaskRespsC:
 			a.logger.Debug("Task goroutine received new signed task response digest", "taskIndex", taskIndex, "signedTaskResponseDigest", signedTaskResponseDigest)
 
+
+			digestAggregatedOperators, ok := aggregatedOperatorsDict[signedTaskResponseDigest.TaskResponseDigest]
+			signed, _ := digestAggregatedOperators.signersOperatorIdsSet[signedTaskResponseDigest.OperatorId];
+			oldSigned, _ := digestAggregatedOperators.oldSignersOperatorIdsSet[signedTaskResponseDigest.OperatorId];
+			if signed || oldSigned {
+				a.logger.Warnf("Operator %#v already submitted response for task %d with same digest. Skipping message.", signedTaskResponseDigest.OperatorId, taskIndex)
+				continue
+			}
+
 			// we expect all operators to respond within the same window, if there are no more responses within timeDebounce
 			// proceed to finishing the task. We want to avoid omiting valid responses just because the threshold was already met.
 			taskResponseDebounceTimer.Stop()
@@ -281,7 +290,6 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 			}
 
 			// after verifying signature we aggregate its sig and pubkey, and update the signed stake amount
-			digestAggregatedOperators, ok := aggregatedOperatorsDict[signedTaskResponseDigest.TaskResponseDigest]
 			if !ok {
 				digestAggregatedOperators = aggregatedOperators{
 					signersApkG2:               bls.NewZeroG2Point(),
