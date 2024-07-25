@@ -6,8 +6,14 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 )
 
+type TaskType = uint8
 type TaskIndex = uint32
 type TaskResponseDigest = Bytes32
+
+type TaskId struct{
+	TaskType TaskType
+	TaskIndex TaskIndex
+}
 
 type SignedTaskResponseDigest struct {
 	TaskResponseDigest          TaskResponseDigest
