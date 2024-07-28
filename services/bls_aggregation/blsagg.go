@@ -76,7 +76,7 @@ type BlsAggregationService interface {
 	// in each of the listed quorums adds up to at least quorumThresholdPercentages[i] of the total stake in that quorum
 	InitializeNewTask(
 		taskId types.TaskId,
-		taskCreatedBlock uint32,
+		taskReferenceBlock uint32,
 		quorumNumbers types.QuorumNums,
 		quorumThresholdPercentages types.QuorumThresholdPercentages,
 		timeToExpiry time.Duration,
@@ -154,12 +154,12 @@ func (a *BlsAggregatorService) GetResponseChannel() <-chan BlsAggregationService
 // in each of the listed quorums adds up to at least quorumThresholdPercentages[i] of the total stake in that quorum
 func (a *BlsAggregatorService) InitializeNewTask(
 	taskId types.TaskId,
-	taskCreatedBlock uint32,
+	taskReferenceBlock uint32,
 	quorumNumbers types.QuorumNums,
 	quorumThresholdPercentages types.QuorumThresholdPercentages,
 	timeToExpiry time.Duration,
 ) error {
-	a.logger.Debug("AggregatorService initializing new task", "taskId", taskId, "taskCreatedBlock", taskCreatedBlock, "quorumNumbers", quorumNumbers, "quorumThresholdPercentages", quorumThresholdPercentages, "timeToExpiry", timeToExpiry)
+	a.logger.Debug("AggregatorService initializing new task", "taskId", taskId, "taskReferenceBlock", taskReferenceBlock, "quorumNumbers", quorumNumbers, "quorumThresholdPercentages", quorumThresholdPercentages, "timeToExpiry", timeToExpiry)
 	if _, taskExists := a.signedTaskRespsCs[taskId]; taskExists {
 		return TaskAlreadyInitializedErrorFn(taskId)
 	}
@@ -167,7 +167,7 @@ func (a *BlsAggregatorService) InitializeNewTask(
 	a.taskChansMutex.Lock()
 	a.signedTaskRespsCs[taskId] = signedTaskRespsC
 	a.taskChansMutex.Unlock()
-	go a.singleTaskAggregatorGoroutineFunc(taskId, taskCreatedBlock, quorumNumbers, quorumThresholdPercentages, timeToExpiry, signedTaskRespsC)
+	go a.singleTaskAggregatorGoroutineFunc(taskId, taskReferenceBlock, quorumNumbers, quorumThresholdPercentages, timeToExpiry, signedTaskRespsC)
 	return nil
 }
 
@@ -206,7 +206,7 @@ func (a *BlsAggregatorService) ProcessNewSignature(
 
 func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 	taskId types.TaskId,
-	taskCreatedBlock uint32,
+	taskReferenceBlock uint32,
 	quorumNumbers types.QuorumNums,
 	quorumThresholdPercentages []types.QuorumThresholdPercentage,
 	timeToExpiry time.Duration,
@@ -220,12 +220,12 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 	for i, quorumNumber := range quorumNumbers {
 		quorumThresholdPercentagesMap[quorumNumber] = quorumThresholdPercentages[i]
 	}
-	operatorsAvsStateDict, err := a.avsRegistryService.GetOperatorsAvsStateAtBlock(context.Background(), quorumNumbers, taskCreatedBlock)
+	operatorsAvsStateDict, err := a.avsRegistryService.GetOperatorsAvsStateAtBlock(context.Background(), quorumNumbers, taskReferenceBlock)
 	if err != nil {
 		// TODO: how should we handle such an error?
-		a.logger.Fatal("AggregatorService failed to get operators state from avs registry", "err", err, "blockNumber", taskCreatedBlock)
+		a.logger.Fatal("AggregatorService failed to get operators state from avs registry", "err", err, "blockNumber", taskReferenceBlock)
 	}
-	quorumsAvsStakeDict, err := a.avsRegistryService.GetQuorumsAvsStateAtBlock(context.Background(), quorumNumbers, taskCreatedBlock)
+	quorumsAvsStakeDict, err := a.avsRegistryService.GetQuorumsAvsStateAtBlock(context.Background(), quorumNumbers, taskReferenceBlock)
 	if err != nil {
 		a.logger.Fatal("Aggregator failed to get quorums state from avs registry", "err", err)
 	}
@@ -254,7 +254,7 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 			digestAggregatedOperators, ok := aggregatedOperatorsDict[signedTaskResponseDigest.TaskResponseDigest]
 			signed, _ := digestAggregatedOperators.signersOperatorIdsSet[signedTaskResponseDigest.OperatorId];
 			if signed { 
-				a.logger.Warnf("Operator %#v already submitted response for task %d with same digest. Skipping message.", signedTaskResponseDigest.OperatorId, taskIndex)
+				a.logger.Warnf("Operator %#v already submitted response for task %x with same digest. Skipping message.", signedTaskResponseDigest.OperatorId, taskId)
 				continue
 			}
 
@@ -300,7 +300,7 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 		case <-taskResponseDebounceTimer.C:
 			if a.finishTask(
 				taskId,
-				taskCreatedBlock,
+				taskReferenceBlock,
 				quorumNumbers,
 				totalStakePerQuorum,
 				quorumThresholdPercentagesMap,
@@ -337,7 +337,7 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 					max = sum
 				}
 			}
-			blsAggregationServiceResponse, err := a.createResponse(taskId, taskCreatedBlock, quorumNumbers, signedTaskResponseDigest, operatorsAvsStateDict, digestAggregatedOperators, quorumApksG1)
+			blsAggregationServiceResponse, err := a.createResponse(taskId, taskReferenceBlock, quorumNumbers, signedTaskResponseDigest, operatorsAvsStateDict, digestAggregatedOperators, quorumApksG1)
 			if err != nil {
 				a.aggregatedResponsesC <- BlsAggregationServiceResponse{
 					Err: err,
@@ -353,7 +353,7 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 
 func (a *BlsAggregatorService) finishTask(
 	taskId types.TaskId,
-	taskCreatedBlock uint32,
+	taskReferenceBlock uint32,
 	quorumNumbers []types.QuorumNum,
 	totalStakePerQuorum map[types.QuorumNum]*big.Int,
 	quorumThresholdPercentagesMap map[types.QuorumNum]types.QuorumThresholdPercentage,
@@ -363,7 +363,7 @@ func (a *BlsAggregatorService) finishTask(
 ) bool {
 	for digest, aggregatedOperators := range aggregatedOperatorsDict {
 		if checkIfStakeThresholdsMet(a.logger, aggregatedOperators.signersTotalStakePerQuorum, totalStakePerQuorum, quorumThresholdPercentagesMap) {
-			blsAggregationServiceResponse, err := a.createResponse(taskId, taskCreatedBlock, quorumNumbers, digest, operatorsAvsStateDict, aggregatedOperators, quorumApksG1)
+			blsAggregationServiceResponse, err := a.createResponse(taskId, taskReferenceBlock, quorumNumbers, digest, operatorsAvsStateDict, aggregatedOperators, quorumApksG1)
 			if err != nil {
 				a.aggregatedResponsesC <- BlsAggregationServiceResponse{
 					Err: err,
@@ -427,7 +427,7 @@ func (a *BlsAggregatorService) verifySignature(
 
 func (a *BlsAggregatorService) createResponse(
 	taskId types.TaskId,
-	taskCreatedBlock uint32,
+	taskReferenceBlock uint32,
 	quorumNumbers []types.QuorumNum,
 	signedTaskResponseDigest types.TaskResponseDigest,
 	operatorsAvsStateDict map[types.OperatorId]types.OperatorAvsState,
@@ -452,7 +452,7 @@ func (a *BlsAggregatorService) createResponse(
 			nonSignersG1Pubkeys = append(nonSignersG1Pubkeys, operator.Pubkeys.G1Pubkey)
 		}
 	}
-	indices, err := a.avsRegistryService.GetCheckSignaturesIndices(&bind.CallOpts{}, taskCreatedBlock, quorumNumbers, nonSignersOperatorIds)
+	indices, err := a.avsRegistryService.GetCheckSignaturesIndices(&bind.CallOpts{}, taskReferenceBlock, quorumNumbers, nonSignersOperatorIds)
 	if err != nil {
 		a.logger.Error("Failed to get check signatures indices", "err", err)
 		return nil, err
