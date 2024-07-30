@@ -22,8 +22,8 @@ var (
 	}
 	TaskExpiredError      = fmt.Errorf("task expired")
 	TaskNotRespondedError = fmt.Errorf("task expired with zero responses")
-	TaskNotFoundErrorFn   = func(taskId types.TaskId) error {
-		return fmt.Errorf("task %x not initialized or already completed", taskId)
+	TaskNotFoundErrorFn   = func() error {
+		return fmt.Errorf("task not initialized or already completed")
 	}
 	OperatorNotPartOfTaskQuorumErrorFn = func(operatorId types.OperatorId, taskId types.TaskId) error {
 		return fmt.Errorf("operator %x not part of task %x's quorum", operatorId, taskId)
@@ -182,7 +182,7 @@ func (a *BlsAggregatorService) ProcessNewSignature(
 	taskC, taskInitialized := a.signedTaskRespsCs[taskId]
 	a.taskChansMutex.Unlock()
 	if !taskInitialized {
-		return TaskNotFoundErrorFn(taskId)
+		return TaskNotFoundErrorFn()
 	}
 	signatureVerificationErrorC := make(chan error)
 	// send the task to the goroutine processing this task
