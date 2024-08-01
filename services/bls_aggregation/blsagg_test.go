@@ -30,10 +30,7 @@ func TestBlsAgg(t *testing.T) {
 			BlsKeypair:     newBlsKeyPairPanics("0x1"),
 		}
 		blockNum := uint32(1)
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -43,13 +40,13 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSig, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSig, testOperator1.OperatorId)
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskIndex:           taskIndex,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1:        []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1()},
@@ -76,10 +73,7 @@ TaskIndex: types.TaskIndex(0),
 			StakePerQuorum: map[types.QuorumNum]types.StakeAmount{0: big.NewInt(300), 1: big.NewInt(100)},
 			BlsKeypair:     newBlsKeyPairPanics("0x3"),
 		}
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -89,21 +83,21 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
 		require.Nil(t, err)
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp2, testOperator2.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp2, testOperator2.OperatorId)
 		require.Nil(t, err)
 		blsSigOp3 := testOperator3.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp3, testOperator3.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp3, testOperator3.OperatorId)
 		require.Nil(t, err)
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskIndex:           taskIndex,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1: []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1().
@@ -132,10 +126,7 @@ TaskIndex: types.TaskIndex(0),
 			StakePerQuorum: map[types.QuorumNum]types.StakeAmount{0: big.NewInt(100), 1: big.NewInt(200)},
 			BlsKeypair:     newBlsKeyPairPanics("0x2"),
 		}
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0, 1}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100, 100}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -145,18 +136,18 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
 		require.Nil(t, err)
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp2, testOperator2.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp2, testOperator2.OperatorId)
 		require.Nil(t, err)
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskIndex:           taskIndex,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1: []*bls.G1Point{
@@ -190,37 +181,31 @@ TaskIndex: types.TaskIndex(0),
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
 		// initialize 2 concurrent tasks
-		task1Id := types.TaskId{
-			TaskType: types.TaskType(0),
-			TaskIndex: types.TaskIndex(1),
-			}
+		task1Index := types.TaskIndex(1)
 		task1ResponseDigest := types.TaskResponseDigest{123}
-		err := blsAggServ.InitializeNewTask(task1Id, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(task1Index, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
-		task2Id := types.TaskId{
-			TaskType: types.TaskType(0),
-			TaskIndex: types.TaskIndex(2),
-			}
+		task2Index := types.TaskIndex(2)
 		task2ResponseDigest := types.TaskResponseDigest{230}
-		err = blsAggServ.InitializeNewTask(task2Id, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err = blsAggServ.InitializeNewTask(task2Index, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
 
 		blsSigTask1Op1 := testOperator1.BlsKeypair.SignMessage(task1ResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), task1Id, task1ResponseDigest, blsSigTask1Op1, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), task1Index, task1ResponseDigest, blsSigTask1Op1, testOperator1.OperatorId)
 		require.Nil(t, err)
 		blsSigTask2Op1 := testOperator1.BlsKeypair.SignMessage(task2ResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), task2Id, task2ResponseDigest, blsSigTask2Op1, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), task2Index, task2ResponseDigest, blsSigTask2Op1, testOperator1.OperatorId)
 		require.Nil(t, err)
 		blsSigTask1Op2 := testOperator2.BlsKeypair.SignMessage(task1ResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), task1Id, task1ResponseDigest, blsSigTask1Op2, testOperator2.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), task1Index, task1ResponseDigest, blsSigTask1Op2, testOperator2.OperatorId)
 		require.Nil(t, err)
 		blsSigTask2Op2 := testOperator2.BlsKeypair.SignMessage(task2ResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), task2Id, task2ResponseDigest, blsSigTask2Op2, testOperator2.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), task2Index, task2ResponseDigest, blsSigTask2Op2, testOperator2.OperatorId)
 		require.Nil(t, err)
 
 		wantAggregationServiceResponseTask1 := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           task1Id,
+			TaskIndex:           task1Index,
 			TaskResponseDigest:  task1ResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1: []*bls.G1Point{
@@ -232,7 +217,7 @@ TaskIndex: types.TaskIndex(0),
 		}
 		wantAggregationServiceResponseTask2 := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           task2Id,
+			TaskIndex:           task2Index,
 			TaskResponseDigest:  task2ResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1: []*bls.G1Point{
@@ -247,7 +232,7 @@ TaskIndex: types.TaskIndex(0),
 		gotAggregationServiceResponseTaskFirstReceived := <-blsAggServ.aggregatedResponsesC
 		gotAggregationServiceResponseTaskSecondReceived := <-blsAggServ.aggregatedResponsesC
 
-		if gotAggregationServiceResponseTaskFirstReceived.TaskId == task1Id {
+		if gotAggregationServiceResponseTaskFirstReceived.TaskIndex == task1Index {
 			require.EqualValues(t, wantAggregationServiceResponseTask1, gotAggregationServiceResponseTaskFirstReceived)
 			require.EqualValues(t, wantAggregationServiceResponseTask2, gotAggregationServiceResponseTaskSecondReceived)
 		} else {
@@ -262,10 +247,7 @@ TaskIndex: types.TaskIndex(0),
 			StakePerQuorum: map[types.QuorumNum]types.StakeAmount{0: big.NewInt(100), 1: big.NewInt(200)},
 			BlsKeypair:     newBlsKeyPairPanics("0x1"),
 		}
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100}
 		blockNum := uint32(1)
@@ -274,7 +256,7 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err: TaskNotRespondedError,
@@ -294,10 +276,7 @@ TaskIndex: types.TaskIndex(0),
 			StakePerQuorum: map[types.QuorumNum]types.StakeAmount{0: big.NewInt(100), 1: big.NewInt(200)},
 			BlsKeypair:     newBlsKeyPairPanics("0x2"),
 		}
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{50}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -308,13 +287,13 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSig, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSig, testOperator1.OperatorId)
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskIndex:           taskIndex,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{testOperator2.BlsKeypair.GetPubKeyG1()},
 			QuorumApksG1:        []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1().Add(testOperator2.BlsKeypair.GetPubKeyG1())},
@@ -337,10 +316,7 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x2"),
 		}
 		blockNum := uint32(1)
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{60}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -350,13 +326,13 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSig, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSig, testOperator1.OperatorId)
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskIndex:           taskIndex,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{testOperator2.BlsKeypair.GetPubKeyG1()},
 			QuorumApksG1:        []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1().Add(testOperator2.BlsKeypair.GetPubKeyG1())},
@@ -380,10 +356,7 @@ TaskIndex: types.TaskIndex(0),
 			StakePerQuorum: map[types.QuorumNum]types.StakeAmount{1: big.NewInt(200)},
 			BlsKeypair:     newBlsKeyPairPanics("0x2"),
 		}
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0, 1}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100, 100}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -393,18 +366,18 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
 		require.Nil(t, err)
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp2, testOperator2.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp2, testOperator2.OperatorId)
 		require.Nil(t, err)
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskIndex:           taskIndex,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1: []*bls.G1Point{
@@ -436,10 +409,7 @@ TaskIndex: types.TaskIndex(0),
 			StakePerQuorum: map[types.QuorumNum]types.StakeAmount{0: big.NewInt(100), 1: big.NewInt(200)},
 			BlsKeypair:     newBlsKeyPairPanics("0x3"),
 		}
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0, 1}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{50, 50}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -449,18 +419,18 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
 		require.Nil(t, err)
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp2, testOperator2.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp2, testOperator2.OperatorId)
 		require.Nil(t, err)
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                TaskExpiredError,
-			TaskId:          taskId,
+			TaskIndex:          taskIndex,
 			TaskResponseDigest: taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{
 				testOperator3.BlsKeypair.GetPubKeyG1(),
@@ -494,10 +464,7 @@ TaskIndex: types.TaskIndex(0),
 			StakePerQuorum: map[types.QuorumNum]types.StakeAmount{0: big.NewInt(100), 1: big.NewInt(200)},
 			BlsKeypair:     newBlsKeyPairPanics("0x3"),
 		}
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0, 1}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{60, 60}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -507,18 +474,18 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
 		require.Nil(t, err)
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp2, testOperator2.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp2, testOperator2.OperatorId)
 		require.Nil(t, err)
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                TaskExpiredError,
-			TaskId:          taskId,
+			TaskIndex:          taskIndex,
 			TaskResponseDigest: taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{
 				testOperator3.BlsKeypair.GetPubKeyG1(),
@@ -541,10 +508,7 @@ TaskIndex: types.TaskIndex(0),
 			StakePerQuorum: map[types.QuorumNum]types.StakeAmount{0: big.NewInt(100)},
 			BlsKeypair:     newBlsKeyPairPanics("0x1"),
 		}
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0, 1}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100, 100}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -554,15 +518,15 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
 		require.Nil(t, err)
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskIndex:           taskIndex,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1:        []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1(), bls.NewZeroG1Point()},
@@ -585,10 +549,7 @@ TaskIndex: types.TaskIndex(0),
 			StakePerQuorum: map[types.QuorumNum]types.StakeAmount{1: big.NewInt(200)},
 			BlsKeypair:     newBlsKeyPairPanics("0x2"),
 		}
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0, 1}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100, 100}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -598,15 +559,15 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSigOp1, testOperator1.OperatorId)
 		require.Nil(t, err)
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskIndex:           taskIndex,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{testOperator2.BlsKeypair.GetPubKeyG1()},
 			QuorumApksG1:        []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1(), testOperator2.BlsKeypair.GetPubKeyG1()},
@@ -624,10 +585,7 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x1"),
 		}
 		blockNum := uint32(1)
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		taskResponseDigest := types.TaskResponseDigest{123}
 		blsSig := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 
@@ -635,8 +593,8 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSig, testOperator1.OperatorId)
-		require.Equal(t, TaskNotFoundErrorFn(taskId), err)
+		err := blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest, blsSig, testOperator1.OperatorId)
+		require.Equal(t, TaskNotFoundErrorFn(taskIndex), err)
 	})
 
 	// this is an edge case as typically we would send new tasks and listen for task responses in a for select loop
@@ -653,10 +611,7 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x2"),
 		}
 		blockNum := uint32(1)
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100}
 
@@ -664,24 +619,24 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 0, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
 		taskResponseDigest1 := types.TaskResponseDigest{1}
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest1)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest1, blsSigOp1, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest1, blsSigOp1, testOperator1.OperatorId)
 		require.Nil(t, err)
 
 		taskResponseDigest2 := types.TaskResponseDigest{2}
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest2)
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
-		err = blsAggServ.ProcessNewSignature(ctx, taskId, taskResponseDigest2, blsSigOp2, testOperator2.OperatorId)
+		err = blsAggServ.ProcessNewSignature(ctx, taskIndex, taskResponseDigest2, blsSigOp2, testOperator2.OperatorId)
 		// this should timeout because the task goroutine is blocked on the response channel (since we only listen for it below)
 		require.Equal(t, context.DeadlineExceeded, err)
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 nil,
-			TaskId:           taskId,
+			TaskIndex:           taskIndex,
 			TaskResponseDigest:  taskResponseDigest1,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1:        []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1()},
@@ -704,10 +659,7 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x2"),
 		}
 		blockNum := uint32(1)
-		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+		taskIndex := types.TaskIndex(0)
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100}
 
@@ -715,19 +667,19 @@ TaskIndex: types.TaskIndex(0),
 		noopLogger := logging.NewNoopLogger()
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
-		err := blsAggServ.InitializeNewTask(taskId, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
+		err := blsAggServ.InitializeNewTask(taskIndex, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
 		taskResponseDigest1 := types.TaskResponseDigest{1}
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest1)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest1, blsSigOp1, testOperator1.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest1, blsSigOp1, testOperator1.OperatorId)
 		require.Nil(t, err)
 		taskResponseDigest2 := types.TaskResponseDigest{2}
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest2)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest2, blsSigOp2, testOperator2.OperatorId)
+		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponseDigest2, blsSigOp2, testOperator2.OperatorId)
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskIndex:           taskIndex,
 			TaskResponseDigest:  taskResponseDigest2,
 			NonSignersPubkeysG1: []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1()},
 			QuorumApksG1: []*bls.G1Point{
