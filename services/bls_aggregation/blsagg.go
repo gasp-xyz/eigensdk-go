@@ -254,7 +254,8 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 			digestAggregatedOperators, ok := aggregatedOperatorsDict[signedTaskResponseDigest.TaskResponseDigest]
 			signed, _ := digestAggregatedOperators.signersOperatorIdsSet[signedTaskResponseDigest.OperatorId];
 			if signed { 
-				a.logger.Warnf("Operator %#v already submitted response for task %x with same digest. Skipping message.", signedTaskResponseDigest.OperatorId, taskId)
+				a.logger.Warnf("Operator %#v already submitted response for task %x with same response/digest. Skipping message.", signedTaskResponseDigest.OperatorId, taskId)
+				signedTaskResponseDigest.SignatureVerificationErrorC <- fmt.Errorf("Operator %#v already submitted response for task %x with same response/digest. Skipping message.", signedTaskResponseDigest.OperatorId, taskId)
 				continue
 			}
 
