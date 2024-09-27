@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o errexit -o nounset -o pipefail
+
 # cd to the directory of this script so that this can be run from anywhere
 script_path=$(
     cd "$(dirname "${BASH_SOURCE[0]}")"
@@ -7,7 +9,7 @@ script_path=$(
 )
 
 # build abigen-with-interfaces docker image if it doesn't exist
-if [[ "$(docker images -q abigen-with-interfaces 2> /dev/null)" == "" ]]; then
+if [[ "$(docker images -q abigen-with-interfaces 2>/dev/null)" == "" ]]; then
     docker build -t abigen-with-interfaces -f abigen-with-interfaces.Dockerfile $script_path
 fi
 
@@ -31,23 +33,17 @@ function create_binding {
     rm -rf data/tmp.abi data/tmp.bin
 }
 
-EIGENLAYER_MIDDLEWARE_PATH=$script_path/lib/eigenlayer-middleware
-cd $EIGENLAYER_MIDDLEWARE_PATH
-# you might want to run forge clean if the contracts have changed
+path=$1
+echo "Generating bindings for contracts in path: $path"
+cd "$path"
+pwd
+
+contracts=$2
+bindings_path=$3
+
 forge build
-
-# No idea why but ordering of the contracts matters here... when I move them around sometimes bindings fail
-avs_contracts="RegistryCoordinator OperatorStateRetriever IndexRegistry StakeRegistry BLSApkRegistry IBLSSignatureChecker ServiceManagerBase"
-for contract in $avs_contracts; do
-    create_binding . $contract ../../bindings
-done
-
-EIGENLAYER_CONTRACT_PATH=$EIGENLAYER_MIDDLEWARE_PATH/lib/eigenlayer-contracts
-cd $EIGENLAYER_CONTRACT_PATH
-forge build
-
-# No idea why but the ordering of the contracts matters, and for some orderings abigen fails...
-el_contracts="DelegationManager ISlasher StrategyManager EigenPod EigenPodManager IStrategy IERC20 AVSDirectory"
-for contract in $el_contracts; do
-    create_binding . $contract ../../../../bindings
+echo "Generating bindings for contracts: $contracts"
+for contract in $contracts; do
+    sleep 1 # this is a hack to fix the issue with abigen randomly failing for some contracts
+    create_binding . "$contract" "$bindings_path"
 done

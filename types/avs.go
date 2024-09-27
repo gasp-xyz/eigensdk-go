@@ -9,6 +9,9 @@ import (
 type TaskType = uint8
 type TaskIndex = uint32
 type TaskResponseDigest = Bytes32
+type TaskResponse = interface{}
+
+type TaskResponseHashFunction func(taskResponse TaskResponse) (TaskResponseDigest, error)
 
 type TaskId struct{
 	TaskType TaskType
@@ -16,7 +19,7 @@ type TaskId struct{
 }
 
 type SignedTaskResponseDigest struct {
-	TaskResponseDigest          TaskResponseDigest
+	TaskResponse                TaskResponse
 	BlsSignature                *bls.Signature
 	OperatorId                  OperatorId
 	SignatureVerificationErrorC chan error `json:"-"` // removed from json because channels are not marshallable
@@ -24,7 +27,7 @@ type SignedTaskResponseDigest struct {
 
 func (strd SignedTaskResponseDigest) LogValue() slog.Value {
 	return slog.GroupValue(
-		slog.Any("taskResponseDigest", strd.TaskResponseDigest),
+		slog.Any("taskResponse", strd.TaskResponse),
 		slog.Any("blsSignature", strd.BlsSignature),
 		slog.Any("operatorId", strd.OperatorId),
 	)

@@ -1,13 +1,14 @@
-// Package metrics implements the avs node prometheus metrics spec: https://eigen.nethermind.io/docs/metrics/metrics-prom-spec
+// Package metrics implements the avs node prometheus metrics spec:
+// https://docs.eigenlayer.xyz/eigenlayer/avs-guides/spec/metrics/metrics-prom-spec
 package metrics
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/types"
+	"github.com/Layr-Labs/eigensdk-go/utils"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -28,7 +29,8 @@ var _ Metrics = (*EigenMetrics)(nil)
 
 // Follows the structure from https://pkg.go.dev/github.com/prometheus/client_golang/prometheus#hdr-A_Basic_Example
 // TODO(samlaf): I think each avs runs in a separate docker bridge network.
-// In order for prometheus to scrape the metrics does the address need to be 0.0.0.0:port to accept connections from other networks?
+// In order for prometheus to scrape the metrics does the address need to be 0.0.0.0:port to accept connections from
+// other networks?
 func NewEigenMetrics(avsName, ipPortAddress string, reg prometheus.Registerer, logger logging.Logger) *EigenMetrics {
 
 	metrics := &EigenMetrics{
@@ -61,8 +63,9 @@ func (m *EigenMetrics) initMetrics() {
 	// Performance score starts as 100, and goes down if node doesn't perform well
 	m.performanceScore.Set(100)
 
-	// TODO(samlaf): should we initialize the feeEarnedTotal? This would require the user to pass in a list of tokens for which to initialize the metric
-	// same for rpcRequestDurationSeconds and rpcRequestTotal... we could initialize them to be 0 on every json-rpc... but is that really necessary?
+	// TODO(samlaf): should we initialize the feeEarnedTotal? This would require the user to pass in a list of tokens
+	// for which to initialize the metric same for rpcRequestDurationSeconds and rpcRequestTotal... we could initialize
+	// them to be 0 on every json-rpc... but is that really necessary?
 }
 
 // AddEigenFeeEarnedTotal adds the fee earned to the total fee earned metric
@@ -79,18 +82,38 @@ func (m *EigenMetrics) SetPerformanceScore(score float64) {
 // reg needs to be the prometheus registry that was passed in the NewEigenMetrics constructor
 func (m *EigenMetrics) Start(ctx context.Context, reg prometheus.Gatherer) <-chan error {
 	m.logger.Infof("Starting metrics server at port %v", m.ipPortAddress)
-	errC := make(chan error, 1)
+	errChan := make(chan error, 1)
+	mux := http.NewServeMux()
+	httpServer := http.Server{
+		Addr:    m.ipPortAddress,
+		Handler: mux,
+	}
+	mux.Handle("/metrics", promhttp.HandlerFor(
+		reg,
+		promhttp.HandlerOpts{},
+	))
+
+	// shutdown server on context done
 	go func() {
-		http.Handle("/metrics", promhttp.HandlerFor(
-			reg,
-			promhttp.HandlerOpts{},
-		))
-		err := http.ListenAndServe(m.ipPortAddress, nil)
-		if err != nil {
-			errC <- types.WrapError(errors.New("Prometheus server failed"), err)
+		<-ctx.Done()
+		m.logger.Info("shutdown signal received")
+		defer func() {
+			close(errChan)
+		}()
+
+		if err := httpServer.Shutdown(context.Background()); err != nil {
+			errChan <- err
+		}
+		m.logger.Info("shutdown completed")
+	}()
+
+	go func() {
+		err := httpServer.ListenAndServe()
+		if err == http.ErrServerClosed {
+			m.logger.Info("server closed")
 		} else {
-			errC <- nil
+			errChan <- utils.WrapError("Prometheus server failed", err)
 		}
 	}()
-	return errC
+	return errChan
 }

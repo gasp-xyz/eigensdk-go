@@ -3,13 +3,16 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"math/big"
+
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
-	"log/slog"
-	"math/big"
+
+	apkreg "github.com/Layr-Labs/eigensdk-go/contracts/bindings/BLSApkRegistry"
 )
 
 const (
@@ -22,7 +25,6 @@ type Operator struct {
 	Address string `yaml:"address" json:"address"`
 
 	// https://github.com/Layr-Labs/eigenlayer-contracts/blob/delegation-redesign/src/contracts/interfaces/IDelegationManager.sol#L18
-	EarningsReceiverAddress   string `yaml:"earnings_receiver_address"    json:"earnings_receiver_address"`
 	DelegationApproverAddress string `yaml:"delegation_approver_address"  json:"delegation_approver_address"`
 	StakerOptOutWindowBlocks  uint32 `yaml:"staker_opt_out_window_blocks" json:"staker_opt_out_window_blocks"`
 
@@ -35,22 +37,18 @@ func (o Operator) Validate() error {
 		return ErrInvalidOperatorAddress
 	}
 
-	if !utils.IsValidEthereumAddress(o.EarningsReceiverAddress) {
-		return ErrInvalidEarningsReceiverAddress
-	}
-
 	if o.DelegationApproverAddress != ZeroAddress && !utils.IsValidEthereumAddress(o.DelegationApproverAddress) {
 		return ErrInvalidDelegationApproverAddress
 	}
 
 	err := utils.CheckIfUrlIsValid(o.MetadataUrl)
 	if err != nil {
-		return WrapError(ErrInvalidMetadataUrl, err)
+		return utils.WrapError(ErrInvalidMetadataUrl, err)
 	}
 
 	body, err := utils.ReadPublicURL(o.MetadataUrl)
 	if err != nil {
-		return WrapError(ErrReadingMetadataUrlResponse, err)
+		return utils.WrapError(ErrReadingMetadataUrlResponse, err)
 	}
 
 	operatorMetadata := OperatorMetadata{}
@@ -62,12 +60,36 @@ func (o Operator) Validate() error {
 	return operatorMetadata.Validate()
 }
 
-// Should we also add the operator address in here?
+// Socket represents the operator's socket address, which is registered onchain
+// TODO: this could have multiple formats... do we really want to use a custom type for this?
+// it could be ip:port, or just port, or ip:port:port if 2 ports are needed (like in eigenda's cast)
+// or whatever an avs decides to use
+type Socket string
+
+func (s Socket) String() string {
+	return string(s)
+}
+
+type OperatorInfo struct {
+	Socket  Socket
+	Pubkeys OperatorPubkeys
+}
+
 type OperatorPubkeys struct {
 	// G1 signatures are used to verify signatures onchain (since G1 is cheaper to verify onchain via precompiles)
 	G1Pubkey *bls.G1Point
 	// G2 is used to verify signatures offchain (signatures are on G1)
 	G2Pubkey *bls.G2Point
+}
+
+func (op OperatorPubkeys) ToContractPubkeys() (apkreg.BN254G1Point, apkreg.BN254G2Point) {
+	return apkreg.BN254G1Point{
+			X: op.G1Pubkey.X.BigInt(new(big.Int)),
+			Y: op.G1Pubkey.Y.BigInt(new(big.Int)),
+		}, apkreg.BN254G2Point{
+			X: [2]*big.Int{op.G2Pubkey.X.A0.BigInt(new(big.Int)), op.G2Pubkey.X.A1.BigInt(new(big.Int))},
+			Y: [2]*big.Int{op.G2Pubkey.Y.A0.BigInt(new(big.Int)), op.G2Pubkey.Y.A1.BigInt(new(big.Int))},
+		}
 }
 
 // ECDSA address of the operator
@@ -78,14 +100,22 @@ type StakeAmount = *big.Int
 // It is the hash of the operator's G1 pubkey
 type OperatorId = Bytes32
 
-func OperatorIdFromPubkey(pubkey *bls.G1Point) OperatorId {
+func OperatorIdFromG1Pubkey(pubkey *bls.G1Point) OperatorId {
 	x := pubkey.X.BigInt(new(big.Int))
 	y := pubkey.Y.BigInt(new(big.Int))
 	return OperatorId(crypto.Keccak256Hash(append(math.U256Bytes(x), math.U256Bytes(y)...)))
 }
 
+func OperatorIdFromContractG1Pubkey(pubkey apkreg.BN254G1Point) OperatorId {
+	return OperatorIdFromG1Pubkey(G1PubkeyFromContractG1Pubkey(pubkey))
+}
+
 func OperatorIdFromKeyPair(keyPair *bls.KeyPair) OperatorId {
-	return OperatorIdFromPubkey(keyPair.GetPubKeyG1())
+	return OperatorIdFromG1Pubkey(keyPair.GetPubKeyG1())
+}
+
+func G1PubkeyFromContractG1Pubkey(pubkey apkreg.BN254G1Point) *bls.G1Point {
+	return bls.NewG1Point(pubkey.X, pubkey.Y)
 }
 
 type QuorumNums []QuorumNum
@@ -135,8 +165,8 @@ type BlockNum = uint32
 
 // AvsOperator represents the operator state in AVS registries
 type OperatorAvsState struct {
-	OperatorId OperatorId
-	Pubkeys    OperatorPubkeys
+	OperatorId   OperatorId
+	OperatorInfo OperatorInfo
 	// Stake of the operator for each quorum
 	StakePerQuorum map[QuorumNum]StakeAmount
 	BlockNumber    BlockNum
