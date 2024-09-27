@@ -46,7 +46,6 @@ func NewChainReader(
 	registryCoordinator *regcoord.ContractRegistryCoordinator,
 	operatorStateRetriever *opstateretriever.ContractOperatorStateRetriever,
 	stakeRegistry *stakeregistry.ContractStakeRegistry,
-	indexRegistry *indexregistry.ContractIndexRegistry,
 	logger logging.Logger,
 	ethClient eth.HttpBackend,
 ) *ChainReader {
@@ -58,7 +57,6 @@ func NewChainReader(
 		registryCoordinator:     registryCoordinator,
 		operatorStateRetriever:  operatorStateRetriever,
 		stakeRegistry:           stakeRegistry,
-		indexRegistry:           indexRegistry,
 		logger:                  logger,
 		ethClient:               ethClient,
 	}
@@ -106,10 +104,6 @@ func BuildAvsRegistryChainReader(
 	if err != nil {
 		return nil, utils.WrapError("Failed to get stakeRegistryAddr", err)
 	}
-	indexRegistryAddr, err := contractRegistryCoordinator.IndexRegistry(&bind.CallOpts{})
-	if err != nil {
-		return nil, types.WrapError(errors.New("Failed to get indexRegistryAddr"), err)
-	}
 	contractStakeRegistry, err := stakeregistry.NewContractStakeRegistry(stakeRegistryAddr, ethClient)
 	if err != nil {
 		return nil, utils.WrapError("Failed to create contractStakeRegistry", err)
@@ -127,7 +121,6 @@ func BuildAvsRegistryChainReader(
 		contractRegistryCoordinator,
 		contractOperatorStateRetriever,
 		contractStakeRegistry,
-		contractIndexRegistry,
 		logger,
 		ethClient,
 	), nil
@@ -506,23 +499,6 @@ func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 	}
 
 	return operatorAddresses, operatorPubkeys, nil
-}
-
-func (r *ChainReader) GetOperatorIdList(
-	opts *bind.CallOpts,
-	quorum types.QuorumNum,
-	blockNumber uint32,
-) ([]types.OperatorId, error) {
-	ids, err := r.indexRegistry.GetOperatorListAtBlockNumber(opts, quorum.UnderlyingType(), blockNumber)
-	if err != nil {
-		r.logger.Error("Cannot get operator list", "err", err)
-		return nil, err
-	}
-	operatorIds := make([]types.OperatorId, 0)
-	for _, id := range ids {
-		operatorIds = append(operatorIds, id)
-	}
-	return operatorIds, nil
 }
 
 func (r *ChainReader) QueryExistingRegisteredOperatorSockets(
