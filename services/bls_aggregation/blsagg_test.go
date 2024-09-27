@@ -636,7 +636,7 @@ TaskIndex: types.TaskIndex(0),
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, 10, noopLogger)
 
 		err := blsAggServ.ProcessNewSignature(context.Background(), taskId, taskResponseDigest, blsSig, testOperator1.OperatorId)
-		require.Equal(t, TaskNotFoundErrorFn(taskId), err)
+		require.Equal(t, TaskNotFoundErrorFn(), err)
 	})
 
 	// this is an edge case as typically we would send new tasks and listen for task responses in a for select loop
