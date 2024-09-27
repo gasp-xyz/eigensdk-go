@@ -543,6 +543,12 @@ func (w *ChainWriter) EjectOperator(
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
-	w.logger.Info("ejected operator with the AVS's registry coordinator", "tx hash: %s", receipt.TxHash.String(), "operator", operatorAddress)
+	w.logger.Info(
+		"ejected operator with the AVS's registry coordinator",
+		"tx hash: %s",
+		receipt.TxHash.String(),
+		"operator",
+		operatorAddress,
+	)
 	return receipt, nil
 }
