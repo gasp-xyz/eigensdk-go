@@ -37,7 +37,7 @@ var (
 // BlsAggregationServiceResponse is the response from the bls aggregation service
 type BlsAggregationServiceResponse struct {
 	Err                error                    // if Err is not nil, the other fields are not valid
-	TaskId          types.TaskId          // unique identifier of the task
+	TaskId             types.TaskId             // unique identifier of the task
 	TaskResponseDigest types.TaskResponseDigest // digest of the task response that was signed
 	// The below 8 fields are the data needed to build the IBLSSignatureChecker.NonSignerStakesAndSignature struct
 	// users of this service will need to build the struct themselves by converting the bls points
@@ -138,8 +138,8 @@ func NewBlsAggregatorService(avsRegistryService avsregistry.AvsRegistryService, 
 		signedTaskRespsCs:    make(map[types.TaskId]chan types.SignedTaskResponseDigest),
 		taskChansMutex:       sync.RWMutex{},
 		avsRegistryService:   avsRegistryService,
-		debounceRpc: debounceRpc,
-		logger: logger,
+		debounceRpc:          debounceRpc,
+		logger:               logger,
 	}
 }
 
@@ -252,8 +252,8 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 			a.logger.Debug("Task goroutine received new signed task response digest", "taskId", taskId, "signedTaskResponseDigest", signedTaskResponseDigest)
 
 			digestAggregatedOperators, ok := aggregatedOperatorsDict[signedTaskResponseDigest.TaskResponseDigest]
-			signed, _ := digestAggregatedOperators.signersOperatorIdsSet[signedTaskResponseDigest.OperatorId];
-			if signed { 
+			signed := digestAggregatedOperators.signersOperatorIdsSet[signedTaskResponseDigest.OperatorId]
+			if signed {
 				a.logger.Warnf("Operator %#v already submitted response for task %x with same response/digest. Skipping message.", signedTaskResponseDigest.OperatorId, taskId)
 				signedTaskResponseDigest.SignatureVerificationErrorC <- fmt.Errorf("Operator %#v already submitted response for task %x with same response/digest. Skipping message.", signedTaskResponseDigest.OperatorId, taskId)
 				continue
@@ -317,7 +317,7 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 		case <-taskExpiredTimer.C:
 			if len(aggregatedOperatorsDict) == 0 {
 				a.aggregatedResponsesC <- BlsAggregationServiceResponse{
-					Err:       TaskNotRespondedError,
+					Err:    TaskNotRespondedError,
 					TaskId: taskId,
 				}
 				return
@@ -461,7 +461,7 @@ func (a *BlsAggregatorService) createResponse(
 	}
 	return &BlsAggregationServiceResponse{
 		Err:                          nil,
-		TaskId:                    taskId,
+		TaskId:                       taskId,
 		TaskResponseDigest:           signedTaskResponseDigest,
 		NonSignersPubkeysG1:          nonSignersG1Pubkeys,
 		QuorumApksG1:                 quorumApksG1,

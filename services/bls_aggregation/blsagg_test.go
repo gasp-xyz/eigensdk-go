@@ -31,9 +31,9 @@ func TestBlsAgg(t *testing.T) {
 		}
 		blockNum := uint32(1)
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -49,7 +49,7 @@ TaskIndex: types.TaskIndex(0),
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskId:              taskId,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1:        []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1()},
@@ -77,9 +77,9 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x3"),
 		}
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -103,7 +103,7 @@ TaskIndex: types.TaskIndex(0),
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskId:              taskId,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1: []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1().
@@ -133,9 +133,9 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x2"),
 		}
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0, 1}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100, 100}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -156,7 +156,7 @@ TaskIndex: types.TaskIndex(0),
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskId:              taskId,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1: []*bls.G1Point{
@@ -191,16 +191,16 @@ TaskIndex: types.TaskIndex(0),
 
 		// initialize 2 concurrent tasks
 		task1Id := types.TaskId{
-			TaskType: types.TaskType(0),
+			TaskType:  types.TaskType(0),
 			TaskIndex: types.TaskIndex(1),
-			}
+		}
 		task1ResponseDigest := types.TaskResponseDigest{123}
 		err := blsAggServ.InitializeNewTask(task1Id, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
 		task2Id := types.TaskId{
-			TaskType: types.TaskType(0),
+			TaskType:  types.TaskType(0),
 			TaskIndex: types.TaskIndex(2),
-			}
+		}
 		task2ResponseDigest := types.TaskResponseDigest{230}
 		err = blsAggServ.InitializeNewTask(task2Id, blockNum, quorumNumbers, quorumThresholdPercentages, tasksTimeToExpiry)
 		require.Nil(t, err)
@@ -220,7 +220,7 @@ TaskIndex: types.TaskIndex(0),
 
 		wantAggregationServiceResponseTask1 := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           task1Id,
+			TaskId:              task1Id,
 			TaskResponseDigest:  task1ResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1: []*bls.G1Point{
@@ -232,7 +232,7 @@ TaskIndex: types.TaskIndex(0),
 		}
 		wantAggregationServiceResponseTask2 := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           task2Id,
+			TaskId:              task2Id,
 			TaskResponseDigest:  task2ResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1: []*bls.G1Point{
@@ -263,9 +263,9 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x1"),
 		}
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100}
 		blockNum := uint32(1)
@@ -295,9 +295,9 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x2"),
 		}
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{50}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -314,7 +314,7 @@ TaskIndex: types.TaskIndex(0),
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskId:              taskId,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{testOperator2.BlsKeypair.GetPubKeyG1()},
 			QuorumApksG1:        []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1().Add(testOperator2.BlsKeypair.GetPubKeyG1())},
@@ -338,9 +338,9 @@ TaskIndex: types.TaskIndex(0),
 		}
 		blockNum := uint32(1)
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{60}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -356,7 +356,7 @@ TaskIndex: types.TaskIndex(0),
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskId:              taskId,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{testOperator2.BlsKeypair.GetPubKeyG1()},
 			QuorumApksG1:        []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1().Add(testOperator2.BlsKeypair.GetPubKeyG1())},
@@ -381,9 +381,9 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x2"),
 		}
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0, 1}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100, 100}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -404,7 +404,7 @@ TaskIndex: types.TaskIndex(0),
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskId:              taskId,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1: []*bls.G1Point{
@@ -437,9 +437,9 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x3"),
 		}
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0, 1}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{50, 50}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -460,7 +460,7 @@ TaskIndex: types.TaskIndex(0),
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                TaskExpiredError,
-			TaskId:          taskId,
+			TaskId:             taskId,
 			TaskResponseDigest: taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{
 				testOperator3.BlsKeypair.GetPubKeyG1(),
@@ -495,9 +495,9 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x3"),
 		}
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0, 1}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{60, 60}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -518,7 +518,7 @@ TaskIndex: types.TaskIndex(0),
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                TaskExpiredError,
-			TaskId:          taskId,
+			TaskId:             taskId,
 			TaskResponseDigest: taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{
 				testOperator3.BlsKeypair.GetPubKeyG1(),
@@ -542,9 +542,9 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x1"),
 		}
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0, 1}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100, 100}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -562,7 +562,7 @@ TaskIndex: types.TaskIndex(0),
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskId:              taskId,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1:        []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1(), bls.NewZeroG1Point()},
@@ -586,9 +586,9 @@ TaskIndex: types.TaskIndex(0),
 			BlsKeypair:     newBlsKeyPairPanics("0x2"),
 		}
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0, 1}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100, 100}
 		taskResponseDigest := types.TaskResponseDigest{123}
@@ -606,7 +606,7 @@ TaskIndex: types.TaskIndex(0),
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskId:              taskId,
 			TaskResponseDigest:  taskResponseDigest,
 			NonSignersPubkeysG1: []*bls.G1Point{testOperator2.BlsKeypair.GetPubKeyG1()},
 			QuorumApksG1:        []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1(), testOperator2.BlsKeypair.GetPubKeyG1()},
@@ -625,9 +625,9 @@ TaskIndex: types.TaskIndex(0),
 		}
 		blockNum := uint32(1)
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		taskResponseDigest := types.TaskResponseDigest{123}
 		blsSig := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 
@@ -654,9 +654,9 @@ TaskIndex: types.TaskIndex(0),
 		}
 		blockNum := uint32(1)
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100}
 
@@ -681,7 +681,7 @@ TaskIndex: types.TaskIndex(0),
 
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 nil,
-			TaskId:           taskId,
+			TaskId:              taskId,
 			TaskResponseDigest:  taskResponseDigest1,
 			NonSignersPubkeysG1: []*bls.G1Point{},
 			QuorumApksG1:        []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1()},
@@ -705,9 +705,9 @@ TaskIndex: types.TaskIndex(0),
 		}
 		blockNum := uint32(1)
 		taskId := types.TaskId{
-TaskType: types.TaskType(0),
-TaskIndex: types.TaskIndex(0),
-}
+			TaskType:  types.TaskType(0),
+			TaskIndex: types.TaskIndex(0),
+		}
 		quorumNumbers := types.QuorumNums{0}
 		quorumThresholdPercentages := []types.QuorumThresholdPercentage{100}
 
@@ -727,7 +727,7 @@ TaskIndex: types.TaskIndex(0),
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
 			Err:                 TaskExpiredError,
-			TaskId:           taskId,
+			TaskId:              taskId,
 			TaskResponseDigest:  taskResponseDigest2,
 			NonSignersPubkeysG1: []*bls.G1Point{testOperator1.BlsKeypair.GetPubKeyG1()},
 			QuorumApksG1: []*bls.G1Point{

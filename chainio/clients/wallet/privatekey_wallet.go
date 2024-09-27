@@ -2,8 +2,8 @@ package wallet
 
 import (
 	"context"
-	"sync"
 	"fmt"
+	"sync"
 
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/signerv2"
@@ -47,7 +47,6 @@ func (t *privateKeyWallet) SendTransaction(ctx context.Context, tx *types.Transa
 	// allow only one trx in flight due to nonce mgmt
 	t.l.Lock()
 	defer t.l.Unlock()
-
 
 	t.logger.Debug("Getting signer for tx")
 	signer, err := t.signerFn(ctx, t.address)
