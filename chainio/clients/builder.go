@@ -1,10 +1,6 @@
 package clients
 
 import (
-	"context"
-	"crypto/ecdsa"
-	"time"
-
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
@@ -149,7 +145,7 @@ func BuildAll(
 	if err != nil {
 		return nil, utils.WrapError("Failed to create transaction sender", err)
 	}
-	txMgr := txmgr.NewSimpleTxManager(pkWallet, ethHttpClient, logger, addr)
+	txMgr := txmgr.NewSimpleTxManager(pkWallet, ethHttpClient, logger, address)
 
 	// creating AVS clients: Reader and Writer
 	avsRegistryChainReader, avsRegistryChainSubscriber, avsRegistryChainWriter, avsRegistryContractBindings, err := avsregistry.BuildClients(

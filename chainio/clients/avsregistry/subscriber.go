@@ -74,7 +74,7 @@ func NewSubscriberFromConfig(
 func (s *ChainSubscriber) SubscribeToNewPubkeyRegistrations() (chan *blsapkreg.ContractBLSApkRegistryNewPubkeyRegistration, event.Subscription, error) {
 	newPubkeyRegistrationChan := make(chan *blsapkreg.ContractBLSApkRegistryNewPubkeyRegistration)
 	sub, err := s.blsApkRegistry.WatchNewPubkeyRegistration(
-		&bind.WatchOpts{Start: &latest}, newPubkeyRegistrationChan, nil,
+		&bind.WatchOpts{}, newPubkeyRegistrationChan, nil,
 	)
 	if err != nil {
 		return nil, nil, utils.WrapError("Failed to subscribe to NewPubkeyRegistration events", err)

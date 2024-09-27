@@ -524,10 +524,11 @@ func (w *ChainWriter) UpdateSocket(
 	return receipt, nil
 }
 
-func (w *AvsRegistryChainWriter) EjectOperator(
+func (w *ChainWriter) EjectOperator(
 	ctx context.Context,
 	operatorAddress gethcommon.Address,
 	quorumNumbers types.QuorumNums,
+	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	w.logger.Info("ejecting operator with the AVS's registry coordinator")
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -538,7 +539,7 @@ func (w *AvsRegistryChainWriter) EjectOperator(
 	if err != nil {
 		return nil, err
 	}
-	receipt, err := w.txMgr.Send(ctx, tx)
+	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
