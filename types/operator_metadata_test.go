@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/Layr-Labs/eigensdk-go/utils"
 	"testing"
+
+	"github.com/Layr-Labs/eigensdk-go/utils"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +18,7 @@ func TestOperatorMetadata(t *testing.T) {
 			name: "Valid metadata with twitter.com url",
 			metadata: OperatorMetadata{
 				Name:        "Ethereum Utopia",
-				Description: "Madhur's first operator is best in this world+&~#",
+				Description: "Madhur's first operator is best in this world+&~#$—%’“”",
 				Logo:        "https://goerli-operator-metadata.s3.amazonaws.com/eigenlayer.png",
 				Twitter:     "https://twitter.com/test",
 				Website:     "https://test.com",
@@ -52,7 +53,7 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "https://twitter.com/test",
 				Website:     "https://test.com",
 			},
-			expectedError: WrapError(ErrInvalidName, utils.ErrEmptyText),
+			expectedError: utils.WrapError(ErrInvalidName, utils.ErrEmptyText),
 		},
 		{
 			name: "Invalid metadata - name has js script",
@@ -63,7 +64,7 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "https://twitter.com/test",
 				Website:     "https://test.com",
 			},
-			expectedError: WrapError(ErrInvalidName, utils.ErrInvalidText),
+			expectedError: utils.WrapError(ErrInvalidName, utils.ErrInvalidText),
 		},
 		{
 			name: "Invalid metadata - no description",
@@ -74,7 +75,7 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "https://twitter.com/test",
 				Website:     "https://test.com",
 			},
-			expectedError: WrapError(ErrInvalidDescription, utils.ErrEmptyText),
+			expectedError: utils.WrapError(ErrInvalidDescription, utils.ErrEmptyText),
 		},
 		{
 			name: "Invalid metadata - wrong image format",
@@ -99,7 +100,7 @@ func TestOperatorMetadata(t *testing.T) {
 			expectedError: utils.ErrInvalidImageMimeType,
 		},
 		{
-			name: "Invalid metadata - name > 200 characters",
+			name: "Invalid metadata - name > 500 characters",
 			metadata: OperatorMetadata{
 				Name:        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
 				Description: "test",
@@ -107,10 +108,10 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "https://twitter.com/test",
 				Website:     "https://test.com",
 			},
-			expectedError: WrapError(ErrInvalidName, utils.ErrTextTooLong),
+			expectedError: utils.WrapError(ErrInvalidName, utils.ErrTextTooLong(utils.TextCharsLimit)),
 		},
 		{
-			name: "Invalid metadata - description > 200 characters",
+			name: "Invalid metadata - description > 500 characters",
 			metadata: OperatorMetadata{
 				Name:        "test",
 				Description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
@@ -118,7 +119,7 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "https://twitter.com/test",
 				Website:     "https://test.com",
 			},
-			expectedError: WrapError(ErrInvalidDescription, utils.ErrTextTooLong),
+			expectedError: utils.WrapError(ErrInvalidDescription, utils.ErrTextTooLong(utils.TextCharsLimit)),
 		},
 		{
 			name: "Invalid metadata - no logo",
@@ -140,7 +141,7 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "ftp://twitter.com/test",
 				Website:     "https://test.com",
 			},
-			expectedError: WrapError(ErrInvalidTwitterUrl, utils.ErrInvalidTwitterUrlRegex),
+			expectedError: utils.WrapError(ErrInvalidTwitterUrl, utils.ErrInvalidTwitterUrlRegex),
 		},
 		{
 			name: "Invalid metadata - invalid logo no extension",
@@ -162,7 +163,7 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "https://twitter.com/test",
 				Website:     "https",
 			},
-			expectedError: WrapError(ErrInvalidWebsiteUrl, utils.ErrInvalidUrl),
+			expectedError: utils.WrapError(ErrInvalidWebsiteUrl, utils.ErrInvalidUrl),
 		},
 		{
 			name: "Invalid metadata - invalid website url #2",
@@ -173,7 +174,7 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "https://twitter.com/test",
 				Website:     "https:/test.com",
 			},
-			expectedError: WrapError(ErrInvalidWebsiteUrl, utils.ErrInvalidUrl),
+			expectedError: utils.WrapError(ErrInvalidWebsiteUrl, utils.ErrInvalidUrl),
 		},
 		{
 			name: "Invalid metadata - invalid website url #3",
@@ -184,7 +185,7 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "https://twitter.com/test",
 				Website:     "ps://test.com",
 			},
-			expectedError: WrapError(ErrInvalidWebsiteUrl, utils.ErrInvalidUrl),
+			expectedError: utils.WrapError(ErrInvalidWebsiteUrl, utils.ErrInvalidUrl),
 		},
 		{
 			name: "Invalid metadata - invalid twitter url #1",
@@ -195,7 +196,7 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "http",
 				Website:     "https://test.com",
 			},
-			expectedError: WrapError(ErrInvalidTwitterUrl, utils.ErrInvalidUrl),
+			expectedError: utils.WrapError(ErrInvalidTwitterUrl, utils.ErrInvalidUrl),
 		},
 		{
 			name: "Invalid metadata - invalid twitter url #2",
@@ -206,7 +207,7 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "ht://twitter.com/test",
 				Website:     "https://test.com",
 			},
-			expectedError: WrapError(ErrInvalidTwitterUrl, utils.ErrInvalidTwitterUrlRegex),
+			expectedError: utils.WrapError(ErrInvalidTwitterUrl, utils.ErrInvalidTwitterUrlRegex),
 		},
 		{
 			name: "Invalid metadata - invalid twitter url #3",
@@ -217,7 +218,7 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "https:/twitt",
 				Website:     "https://test.com",
 			},
-			expectedError: WrapError(ErrInvalidTwitterUrl, utils.ErrInvalidUrl),
+			expectedError: utils.WrapError(ErrInvalidTwitterUrl, utils.ErrInvalidUrl),
 		},
 		{
 			name: "Invalid metadata - invalid twitter url #4 - not twitter url",
@@ -228,7 +229,7 @@ func TestOperatorMetadata(t *testing.T) {
 				Twitter:     "https://facebook.com/test",
 				Website:     "https://test.com",
 			},
-			expectedError: WrapError(ErrInvalidTwitterUrl, utils.ErrInvalidTwitterUrlRegex),
+			expectedError: utils.WrapError(ErrInvalidTwitterUrl, utils.ErrInvalidTwitterUrlRegex),
 		},
 	}
 

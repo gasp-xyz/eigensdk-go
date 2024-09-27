@@ -7,12 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Layr-Labs/eigensdk-go/testutils"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-
-	"github.com/Layr-Labs/eigensdk-go/logging"
 )
 
 type MetricsTestSuite struct {
@@ -23,7 +24,7 @@ type MetricsTestSuite struct {
 
 // this runs before all tests to initialize reg and metrics
 func (suite *MetricsTestSuite) SetupTest() {
-	logger := logging.NewNoopLogger()
+	logger := testutils.GetTestLogger()
 	// create and start the metrics server
 	suite.reg = prometheus.NewRegistry()
 	suite.metrics = NewEigenMetrics("testavs", "localhost:9090", suite.reg, logger)
@@ -52,7 +53,8 @@ func (suite *MetricsTestSuite) TestEigenMetricsServerIntegration() {
 	assert.NoError(suite.T(), err)
 
 	// We only check for "eigen_performance_score" since it's the only metric that doesn't have a label
-	// the other metrics have labels (they are vectors) so they don't appear in the output unless we use them once at least
+	// the other metrics have labels (they are vectors) so they don't appear in the output unless we use them once at
+	// least
 	assert.Contains(suite.T(), string(body), "eigen_fees_earned_total")
 	assert.Contains(suite.T(), string(body), "eigen_performance_score")
 }

@@ -10,8 +10,8 @@ type TaskType = uint8
 type TaskIndex = uint32
 type TaskResponseDigest = Bytes32
 
-type TaskId struct{
-	TaskType TaskType
+type TaskId struct {
+	TaskType  TaskType
 	TaskIndex TaskIndex
 }
 

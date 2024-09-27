@@ -27,19 +27,28 @@ type InstrumentedClient struct {
 	clientAndVersion string
 }
 
-var _ Client = (*InstrumentedClient)(nil)
+var _ HttpBackend = (*InstrumentedClient)(nil)
+var _ WsBackend = (*InstrumentedClient)(nil)
 
 func NewInstrumentedClient(rpcAddress string, rpcCallsCollector *rpccalls.Collector) (*InstrumentedClient, error) {
 	client, err := ethclient.Dial(rpcAddress)
 	if err != nil {
 		return nil, err
 	}
+
+	return NewInstrumentedClientFromClient(client, rpcCallsCollector), nil
+}
+
+func NewInstrumentedClientFromClient(
+	client *ethclient.Client,
+	rpcCallsCollector *rpccalls.Collector,
+) *InstrumentedClient {
 	clientAndVersion := getClientAndVersion(client)
 	return &InstrumentedClient{
 		client:            client,
 		rpcCallsCollector: rpcCallsCollector,
 		clientAndVersion:  clientAndVersion,
-	}, nil
+	}
 }
 
 // gethClient interface methods
@@ -101,19 +110,6 @@ func (iec *InstrumentedClient) CallContract(
 ) ([]byte, error) {
 	callContract := func() ([]byte, error) { return iec.client.CallContract(ctx, call, blockNumber) }
 	bytes, err := instrumentFunction[[]byte](callContract, "eth_call", iec)
-	if err != nil {
-		return nil, err
-	}
-	return bytes, nil
-}
-
-func (iec *InstrumentedClient) CallContractAtHash(
-	ctx context.Context,
-	msg ethereum.CallMsg,
-	blockHash common.Hash,
-) ([]byte, error) {
-	callContractAtHash := func() ([]byte, error) { return iec.client.CallContractAtHash(ctx, msg, blockHash) }
-	bytes, err := instrumentFunction[[]byte](callContractAtHash, "eth_call", iec)
 	if err != nil {
 		return nil, err
 	}
@@ -197,15 +193,6 @@ func (iec *InstrumentedClient) HeaderByNumber(ctx context.Context, number *big.I
 	return header, nil
 }
 
-func (iec *InstrumentedClient) NetworkID(ctx context.Context) (*big.Int, error) {
-	networkID := func() (*big.Int, error) { return iec.client.NetworkID(ctx) }
-	id, err := instrumentFunction[*big.Int](networkID, "net_version", iec)
-	if err != nil {
-		return nil, err
-	}
-	return id, nil
-}
-
 func (iec *InstrumentedClient) NonceAt(
 	ctx context.Context,
 	account common.Address,
@@ -217,15 +204,6 @@ func (iec *InstrumentedClient) NonceAt(
 		return 0, err
 	}
 	return nonce, nil
-}
-
-func (iec *InstrumentedClient) PeerCount(ctx context.Context) (uint64, error) {
-	peerCount := func() (uint64, error) { return iec.client.PeerCount(ctx) }
-	count, err := instrumentFunction[uint64](peerCount, "net_peerCount", iec)
-	if err != nil {
-		return 0, err
-	}
-	return count, nil
 }
 
 func (iec *InstrumentedClient) PendingBalanceAt(ctx context.Context, account common.Address) (*big.Int, error) {
@@ -398,7 +376,7 @@ func (iec *InstrumentedClient) TransactionByHash(
 	if err != nil {
 		return nil, false, err
 	}
-	rpcRequestDuration := time.Since(start)
+	rpcRequestDuration := time.Since(start).Seconds()
 	// we only observe the duration of successful calls (even though this is not well defined in the spec)
 	iec.rpcCallsCollector.ObserveRPCRequestDurationSeconds(
 		float64(rpcRequestDuration),
@@ -452,45 +430,9 @@ func (iec *InstrumentedClient) TransactionReceipt(ctx context.Context, txHash co
 	return receipt, nil
 }
 
-func (iec *InstrumentedClient) TransactionSender(
-	ctx context.Context,
-	tx *types.Transaction,
-	block common.Hash,
-	index uint,
-) (common.Address, error) {
-	transactionSender := func() (common.Address, error) { return iec.client.TransactionSender(ctx, tx, block, index) }
-	address, err := instrumentFunction[common.Address](
-		transactionSender,
-		"eth_getSender",
-		iec,
-	)
-	if err != nil {
-		return common.Address{}, err
-	}
-	return address, nil
-}
-
-// Extra methods
-
-// TODO(samlaf): feels weird that we have to write this function ourselves
-//
-//	perhaps the gethClient interface should be the instrumented client,
-//	and then ethclient can take an instrumentedGethClient?
-func (iec *InstrumentedClient) WaitForTransactionReceipt(ctx context.Context, txHash common.Hash) *types.Receipt {
-	for {
-		// verifying transaction receipt
-		receipt, err := iec.TransactionReceipt(ctx, txHash)
-		if err != nil {
-			time.Sleep(2 * time.Second)
-		} else {
-			return receipt
-		}
-	}
-}
-
 // Not sure why this method is not exposed in the ethclient itself...
 // but it is needed to comply with the rpc metrics defined in avs-node spec
-// https://eigen.nethermind.io/docs/metrics/metrics-prom-spec
+// https://docs.eigenlayer.xyz/eigenlayer/avs-guides/spec/metrics/metrics-prom-spec
 func getClientAndVersion(client *ethclient.Client) string {
 	var clientVersion string
 	err := client.Client().Call(&clientVersion, "web3_clientVersion")
@@ -513,7 +455,7 @@ func instrumentFunction[T any](
 	if err != nil {
 		return value, err
 	}
-	rpcRequestDuration := time.Since(start)
+	rpcRequestDuration := time.Since(start).Seconds()
 	// we only observe the duration of successful calls (even though this is not well defined in the spec)
 	iec.rpcCallsCollector.ObserveRPCRequestDurationSeconds(
 		float64(rpcRequestDuration),

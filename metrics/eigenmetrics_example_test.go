@@ -6,6 +6,7 @@ package metrics_test
 
 import (
 	"context"
+	"time"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
@@ -13,8 +14,10 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/metrics"
 	"github.com/Layr-Labs/eigensdk-go/metrics/collectors/economic"
 	rpccalls "github.com/Layr-Labs/eigensdk-go/metrics/collectors/rpc_calls"
+	"github.com/Layr-Labs/eigensdk-go/signerv2"
 	"github.com/Layr-Labs/eigensdk-go/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -44,7 +47,22 @@ func ExampleEigenMetrics() {
 		AvsName:                    "exampleAvs",
 		PromMetricsIpPortAddress:   ":9090",
 	}
-	clients, err := clients.BuildAll(chainioConfig, ecdsaPrivateKey, logger)
+	ethHttpClient, err := ethclient.Dial(chainioConfig.EthHttpUrl)
+	if err != nil {
+		panic(err)
+	}
+
+	rpcCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	chainid, err := ethHttpClient.ChainID(rpcCtx)
+	if err != nil {
+		panic(err)
+	}
+	signerV2, addr, err := signerv2.SignerFromConfig(signerv2.Config{PrivateKey: ecdsaPrivateKey}, chainid)
+	if err != nil {
+		panic(err)
+	}
+	clients, err := clients.BuildAll(chainioConfig, addr, signerV2, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -55,9 +73,17 @@ func ExampleEigenMetrics() {
 		0: "ethQuorum",
 		1: "someOtherTokenQuorum",
 	}
-	// We must register the economic metrics separately because they are exported metrics (from jsonrpc or subgraph calls)
+	// We must register the economic metrics separately because they are exported metrics (from jsonrpc or subgraph
+	// calls)
 	// and not instrumented metrics: see https://prometheus.io/docs/instrumenting/writing_clientlibs/#overall-structure
-	economicMetricsCollector := economic.NewCollector(clients.ElChainReader, clients.AvsRegistryChainReader, "exampleAvs", logger, operatorEcdsaAddr, quorumNames)
+	economicMetricsCollector := economic.NewCollector(
+		clients.ElChainReader,
+		clients.AvsRegistryChainReader,
+		"exampleAvs",
+		logger,
+		operatorEcdsaAddr,
+		quorumNames,
+	)
 	reg.MustRegister(economicMetricsCollector)
 
 	rpcCallsCollector := rpccalls.NewCollector("exampleAvs", reg)

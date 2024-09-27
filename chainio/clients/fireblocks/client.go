@@ -32,18 +32,32 @@ var AssetIDByChain = map[uint64]AssetID{
 	17000: AssetIDHolETH,    // holesky
 }
 
-type FireblocksTxID string
-
 type Client interface {
 	// ContractCall makes a ContractCall request to the Fireblocks API.
 	// It signs and broadcasts a transaction and returns the transaction ID and status.
 	// ref: https://developers.fireblocks.com/reference/post_transactions
-	ContractCall(ctx context.Context, body *ContractCallRequest) (*ContractCallResponse, error)
+	ContractCall(ctx context.Context, body *TransactionRequest) (*TransactionResponse, error)
+	// Transfer makes a Transfer request to the Fireblocks API.
+	// It signs and broadcasts a transaction and returns the transaction ID and status.
+	// ref: https://developers.fireblocks.com/reference/post_transactions
+	Transfer(ctx context.Context, body *TransactionRequest) (*TransactionResponse, error)
+	// CancelTransaction makes a CancelTransaction request to the Fireblocks API
+	// It cancels a transaction by its transaction ID.
+	// It returns true if the transaction was successfully canceled.
+	// ref: https://developers.fireblocks.com/reference/post_transactions-txid-cancel
+	CancelTransaction(ctx context.Context, txID string) (bool, error)
 	// ListContracts makes a ListContracts request to the Fireblocks API
 	// It returns a list of whitelisted contracts and their assets for the account.
-	// This call is used to get the contract ID for a whitelisted contract, which is needed as destination account ID by NewContractCallRequest in a ContractCall
+	// This call is used to get the contract ID for a whitelisted contract, which is needed as destination account ID by
+	// NewContractCallRequest in a ContractCall
 	// ref: https://developers.fireblocks.com/reference/get_contracts
 	ListContracts(ctx context.Context) ([]WhitelistedContract, error)
+	// ListExternalWallets makes a ListExternalWallets request to the Fireblocks API
+	// It returns a list of external wallets for the account.
+	// This call is used to get the external wallet ID, which is needed as destination account ID by NewTransferRequest
+	// in a Transfer
+	// ref: https://developers.fireblocks.com/reference/get_external-wallets
+	ListExternalWallets(ctx context.Context) ([]WhitelistedAccount, error)
 	// ListVaultAccounts makes a ListVaultAccounts request to the Fireblocks API
 	// It returns a list of vault accounts for the account.
 	ListVaultAccounts(ctx context.Context) ([]VaultAccount, error)
@@ -69,7 +83,13 @@ type ErrorResponse struct {
 	Code    int    `json:"code"`
 }
 
-func NewClient(apiKey string, secretKey []byte, baseURL string, timeout time.Duration, logger logging.Logger) (Client, error) {
+func NewClient(
+	apiKey string,
+	secretKey []byte,
+	baseURL string,
+	timeout time.Duration,
+	logger logging.Logger,
+) (Client, error) {
 	c := http.Client{Timeout: timeout}
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(secretKey)
 	if err != nil {
@@ -87,7 +107,8 @@ func NewClient(apiKey string, secretKey []byte, baseURL string, timeout time.Dur
 }
 
 // signJwt signs a JWT token for the Fireblocks API
-// mostly copied from the Fireblocks example: https://github.com/fireblocks/developers-hub/blob/main/authentication_examples/go/test.go
+// mostly copied from the Fireblocks example:
+// https://github.com/fireblocks/developers-hub/blob/main/authentication_examples/go/test.go
 func (f *client) signJwt(path string, bodyJson interface{}, durationSeconds int64) (string, error) {
 	nonce := uuid.New().String()
 	now := time.Now().Unix()
@@ -121,7 +142,8 @@ func (f *client) signJwt(path string, bodyJson interface{}, durationSeconds int6
 }
 
 // makeRequest makes a request to the Fireblocks API
-// mostly copied from the Fireblocks example: https://github.com/fireblocks/developers-hub/blob/main/authentication_examples/go/test.go
+// mostly copied from the Fireblocks example:
+// https://github.com/fireblocks/developers-hub/blob/main/authentication_examples/go/test.go
 func (f *client) makeRequest(ctx context.Context, method, path string, body interface{}) ([]byte, error) {
 	// remove query parameters from path and join with baseURL
 	pathURI, err := url.Parse(path)
@@ -184,7 +206,12 @@ func (f *client) makeRequest(ctx context.Context, method, path string, body inte
 		if err != nil {
 			return nil, fmt.Errorf("error parsing error response: %w", err)
 		}
-		return nil, fmt.Errorf("error response (%d) from Fireblocks with code %d: %s", resp.StatusCode, errResp.Code, errResp.Message)
+		return nil, fmt.Errorf(
+			"error response (%d) from Fireblocks with code %d: %s",
+			resp.StatusCode,
+			errResp.Code,
+			errResp.Message,
+		)
 	}
 
 	return respBody, nil
