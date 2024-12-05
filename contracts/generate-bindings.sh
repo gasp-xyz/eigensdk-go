@@ -33,17 +33,20 @@ function create_binding {
     rm -rf data/tmp.abi data/tmp.bin
 }
 
-path=$1
-echo "Generating bindings for contracts in path: $path"
-cd "$path"
-pwd
-
-contracts=$2
-bindings_path=$3
-
+rm -rf bindings/*
+forge clean
 forge build
-echo "Generating bindings for contracts: $contracts"
-for contract in $contracts; do
+
+avs_service_contracts="BLSApkRegistry DelegationManager EigenPod EigenPodManager IAVSDirectory IBLSSignatureChecker IERC20 IndexRegistry IRewardsCoordinator ISlasher IStrategy OperatorStateRetriever RegistryCoordinator ServiceManagerBase StakeRegistry StrategyManager"
+for contract in $avs_service_contracts; do
     sleep 1 # this is a hack to fix the issue with abigen randomly failing for some contracts
-    create_binding . "$contract" "$bindings_path"
+    create_binding ./lib/eigenlayer-middleware/ $contract ./bindings
 done
+
+service_contracts="ContractsRegistry MockAvsServiceManager"
+for contract in $service_contracts; do
+    sleep 1 # this is a hack to fix the issue with abigen randomly failing for some contracts
+    create_binding . $contract ./bindings
+done
+
+rm -rf data
