@@ -3,9 +3,9 @@ package operatorsinfo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 	"sync"
-	"fmt"
 	"time"
 
 	blsapkreg "github.com/Layr-Labs/eigensdk-go/contracts/bindings/BLSApkRegistry"
@@ -35,10 +35,10 @@ type avsRegistryReader interface {
 		stopBlock *big.Int,
 		blockRange *big.Int,
 	) ([]types.OperatorAddr, []types.OperatorPubkeys, error)
-	
+
 	BlockNumber(
 		ctx context.Context,
-	) (uint64, error) 
+	) (uint64, error)
 }
 
 type avsRegistrySubscriber interface {
@@ -218,7 +218,7 @@ func (ops *OperatorsInfoServiceInMemory) startServiceInGoroutine(
 						if err != nil {
 							err = fmt.Errorf("BlockNumber failed: %w", err)
 						}
-						if err == nil{
+						if err == nil {
 							if curBlock < lookBackBlocks {
 								startBlock = 0
 							} else {
@@ -226,7 +226,13 @@ func (ops *OperatorsInfoServiceInMemory) startServiceInGoroutine(
 							}
 							// TODO
 							// This is duplicated. Solve this correctly maybe?
-							err = ops.queryPastRegisteredOperatorEventsAndFillDb(ctx, Opts{StartBlock:new(big.Int).SetUint64(startBlock), StopBlock:new(big.Int).SetUint64(curBlock)})
+							err = ops.queryPastRegisteredOperatorEventsAndFillDb(
+								ctx,
+								Opts{
+									StartBlock: new(big.Int).SetUint64(startBlock),
+									StopBlock:  new(big.Int).SetUint64(curBlock),
+								},
+							)
 							if err != nil {
 								err = fmt.Errorf("queryPastRegisteredOperatorEventsAndFillDb failed: %w", err)
 							}
@@ -235,8 +241,14 @@ func (ops *OperatorsInfoServiceInMemory) startServiceInGoroutine(
 							}
 						}
 					}
-		
-					ops.logger.Error("Failed to SubscribeToNewPubkeyRegistrations, retrying...", "err", err, "attempt", attempt+1)
+
+					ops.logger.Error(
+						"Failed to SubscribeToNewPubkeyRegistrations, retrying...",
+						"err",
+						err,
+						"attempt",
+						attempt+1,
+					)
 					select {
 					case <-ctx.Done():
 						ops.logger.Debugf("OperatorPubkeysServiceInMemory: Context cancelled, exiting, %v", ctx.Err())
@@ -283,7 +295,7 @@ func (ops *OperatorsInfoServiceInMemory) startServiceInGoroutine(
 						if err != nil {
 							err = fmt.Errorf("BlockNumber failed: %w", err)
 						}
-						if err == nil{
+						if err == nil {
 							if curBlock < lookBackBlocks {
 								startBlock = 0
 							} else {
@@ -291,7 +303,13 @@ func (ops *OperatorsInfoServiceInMemory) startServiceInGoroutine(
 							}
 							// TODO
 							// This is duplicated. Solve this correctly maybe?
-							err = ops.queryPastRegisteredOperatorEventsAndFillDb(ctx, Opts{StartBlock:new(big.Int).SetUint64(startBlock), StopBlock:new(big.Int).SetUint64(curBlock)})
+							err = ops.queryPastRegisteredOperatorEventsAndFillDb(
+								ctx,
+								Opts{
+									StartBlock: new(big.Int).SetUint64(startBlock),
+									StopBlock:  new(big.Int).SetUint64(curBlock),
+								},
+							)
 							if err != nil {
 								err = fmt.Errorf("queryPastRegisteredOperatorEventsAndFillDb failed: %w", err)
 							}
@@ -300,8 +318,14 @@ func (ops *OperatorsInfoServiceInMemory) startServiceInGoroutine(
 							}
 						}
 					}
-		
-					ops.logger.Error("Failed to SubscribeToOperatorSocketUpdates, retrying...", "err", err, "attempt", attempt+1)
+
+					ops.logger.Error(
+						"Failed to SubscribeToOperatorSocketUpdates, retrying...",
+						"err",
+						err,
+						"attempt",
+						attempt+1,
+					)
 					select {
 					case <-ctx.Done():
 						ops.logger.Debugf("OperatorPubkeysServiceInMemory: Context cancelled, exiting, %v", ctx.Err())

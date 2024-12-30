@@ -576,4 +576,3 @@ func (r *ChainReader) BlockNumber(
 	}
 	return curBlockNum, nil
 }
-
