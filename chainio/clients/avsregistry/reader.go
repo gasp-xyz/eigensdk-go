@@ -566,3 +566,14 @@ func (r *ChainReader) QueryExistingRegisteredOperatorSockets(
 	}
 	return operatorIdToSocketMap, nil
 }
+
+func (r *ChainReader) BlockNumber(
+	ctx context.Context,
+) (uint64, error) {
+	curBlockNum, err := r.ethClient.BlockNumber(ctx)
+	if err != nil {
+		return nil, utils.WrapError("Cannot get current block number", err)
+	}
+	return curBlockNum, nil
+}
+
