@@ -98,3 +98,9 @@ func (f *FakeAVSRegistryReader) GetCheckSignaturesIndices(
 ) (opstateretriever.OperatorStateRetrieverCheckSignaturesIndices, error) {
 	return opstateretriever.OperatorStateRetrieverCheckSignaturesIndices{}, nil
 }
+
+func (f *FakeAVSRegistryReader) BlockNumber(
+	ctx context.Context,
+) (uint64, error) {
+	return 0, nil
+}

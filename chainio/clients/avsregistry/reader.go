@@ -572,7 +572,7 @@ func (r *ChainReader) BlockNumber(
 ) (uint64, error) {
 	curBlockNum, err := r.ethClient.BlockNumber(ctx)
 	if err != nil {
-		return nil, utils.WrapError("Cannot get current block number", err)
+		return 0, utils.WrapError("Cannot get current block number", err)
 	}
 	return curBlockNum, nil
 }
