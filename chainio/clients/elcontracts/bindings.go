@@ -60,11 +60,15 @@ func NewBindingsFromConfig(
 
 		slasherAddr, err = contractDelegationManager.Slasher(&bind.CallOpts{})
 		if err != nil {
-			return nil, utils.WrapError("Failed to fetch Slasher address", err)
+			// TODO: find sdk compatible with holesky
+			// 	return nil, utils.WrapError("Failed to fetch Slasher address", err)
+			logger.Warn("Failed to fetch Slasher address", err)
 		}
 		contractSlasher, err = slasher.NewContractISlasher(slasherAddr, client)
 		if err != nil {
-			return nil, utils.WrapError("Failed to fetch Slasher contract", err)
+			// TODO: find sdk compatible with holesky
+			// 	return nil, utils.WrapError("Failed to fetch Slasher contract", err)
+			logger.Warn("Failed to fetch Slasher address", err)
 		}
 
 		strategyManagerAddr, err = contractDelegationManager.StrategyManager(&bind.CallOpts{})
@@ -127,11 +131,16 @@ func NewEigenlayerContractBindings(
 
 	slasherAddr, err := contractDelegationManager.Slasher(&bind.CallOpts{})
 	if err != nil {
-		return nil, utils.WrapError("Failed to fetch Slasher address", err)
+		// TODO: find sdk compatible with holesky
+		// return nil, utils.WrapError("Failed to fetch Slasher address", err)
+		logger.Warn("Failed to fetch Slasher address", err)
 	}
+
 	contractSlasher, err := slasher.NewContractISlasher(slasherAddr, ethclient)
 	if err != nil {
-		return nil, utils.WrapError("Failed to fetch Slasher contract", err)
+		// TODO: find sdk compatible with holesky
+		// 	return nil, utils.WrapError("Failed to fetch Slasher contract", err)
+		logger.Warn("Failed to fetch Slasher address", err)
 	}
 
 	strategyManagerAddr, err := contractDelegationManager.StrategyManager(&bind.CallOpts{})
